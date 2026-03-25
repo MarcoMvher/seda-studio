@@ -44,6 +44,20 @@ class MyApp extends StatelessWidget {
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
               useMaterial3: true,
             ),
+            builder: (context, child) {
+              // Ensure text direction is preserved on orientation changes
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textDirection: TextDirection.rtl,
+                ),
+                child: Directionality(
+                  textDirection: settingsProvider.locale.languageCode == 'ar'
+                      ? TextDirection.rtl
+                      : TextDirection.ltr,
+                  child: child!,
+                ),
+              );
+            },
             home: const SplashScreen(),
             debugShowCheckedModeBanner: false,
           );
