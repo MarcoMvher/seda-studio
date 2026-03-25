@@ -1,0 +1,53 @@
+# Codemagic configuration for Seda Studio iOS Build
+# Documentation: https://docs.codemagic.io/yaml/basic-configuration/
+
+workflows:
+  ios-workflow:
+    name: iOS Build
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+    integrations:
+      app_store_connect: codemagic
+    environment:
+      vars:
+        FLUTTER_VERSION: "3.24.5"
+      xcode: latest
+      cocoapods: default
+    triggering:
+      events:
+        - push
+        - tag
+        - pull_request
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    scripts:
+      - name: Install Flutter
+        script: |
+          flutter install --version $FLUTTER_VERSION
+      - name: Get Flutter dependencies
+        script: |
+          flutter pub get
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios && pod install
+      - name: Set up code signing
+        script: |
+          echo "Set up code signing certificates and provisioning profiles"
+          # Codemagic will automatically handle code signing
+          # if you configure it in the Codemagic dashboard
+      - name: Build iOS
+        script: |
+          flutter build ios --release
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        # Submit to TestFlight (optional)
+        # submit_to_testflight: true
+        # Submit for App Store review (optional)
+        # submit_to_app_store: false
+        # Enable automatic release (optional)
+        # automatic_release: false

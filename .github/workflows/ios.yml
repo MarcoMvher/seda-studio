@@ -1,0 +1,58 @@
+name: Build and Release iOS
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+        cache: true
+
+    - name: Install Flutter dependencies
+      working-directory: ./flutter
+      run: flutter pub get
+
+    - name: Build iOS App (Release)
+      working-directory: ./flutter
+      run: |
+        flutter build ios --release --no-codesign
+
+    - name: Create IPA
+      run: |
+        mkdir -p build
+        cd flutter/build/ios/iphoneos
+        zip -r ../../../build/Runner.app.zip Runner.app
+
+    - name: Upload iOS Build
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-build
+        path: flutter/build/Runner.app.zip
+        retention-days: 30
+
+    # Optional: Create GitHub Release (only on tags)
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: flutter/build/Runner.app.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
