@@ -170,6 +170,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
             padding: const EdgeInsets.all(16),
             color: Colors.grey[100],
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
@@ -332,6 +333,8 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
                       : null,
                 ),
                 child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  shrinkWrap: false,
                   itemCount: visitProvider.visits.length,
                   itemBuilder: (context, index) {
                     final visit = visitProvider.visits[index];
@@ -447,6 +450,8 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
               return RefreshIndicator(
                 onRefresh: _loadOrders,
                 child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  shrinkWrap: false,
                   itemCount: filteredOrders.length,
                   itemBuilder: (context, index) {
                     final order = filteredOrders[index];
