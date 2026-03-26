@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'api_service.dart';
 import '../models/user.dart';
+import '../utils/error_handler.dart';
 
 class AuthService {
   final ApiService _apiService = ApiService();
@@ -33,6 +34,37 @@ class AuthService {
       return {
         'success': false,
         'error': e.response?.data?['detail'] ?? 'Login failed',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'An unexpected error occurred',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> changePassword(
+    String oldPassword,
+    String newPassword,
+  ) async {
+    try {
+      final response = await _apiService.dio.post(
+        '/api/auth/change-password/',
+        data: {
+          'old_password': oldPassword,
+          'new_password': newPassword,
+        },
+      );
+
+      return {
+        'success': true,
+        'message': response.data['message'] ?? 'Password changed successfully',
+      };
+    } on DioException catch (e) {
+      final error = ErrorHandler.parseError(e);
+      return {
+        'success': false,
+        'error': error.messageAr,
       };
     } catch (e) {
       return {

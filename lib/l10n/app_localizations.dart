@@ -127,6 +127,18 @@ class AppLocalizations {
   String get loginAgain => _getString('تسجيل الدخول مرة أخرى', 'Login Again');
   String get youAreNotLoggedIn => _getString('لست مسجلاً للدخول', 'You are not logged in');
   String get goToLogin => _getString('الذهاب لتسجيل الدخول', 'Go to Login');
+  String get changePassword => _getString('تغيير كلمة المرور', 'Change Password');
+  String get currentPassword => _getString('كلمة المرور الحالية', 'Current Password');
+  String get newPassword => _getString('كلمة المرور الجديدة', 'New Password');
+  String get confirmPassword => _getString('تأكيد كلمة المرور', 'Confirm Password');
+  String get currentPasswordHint => _getString('أدخل كلمة المرور الحالية', 'Enter current password');
+  String get newPasswordHint => _getString('أدخل كلمة المرور الجديدة', 'Enter new password');
+  String get confirmPasswordHint => _getString('أكيد كلمة المرور الجديدة', 'Confirm new password');
+  String get passwordChanged => _getString('تم تغيير كلمة المرور بنجاح', 'Password changed successfully');
+  String get passwordChangeFailed => _getString('فشل تغيير كلمة المرور', 'Failed to change password');
+  String get passwordsDoNotMatch => _getString('كلمات المرور غير متطابقة', 'Passwords do not match');
+  String get invalidPasswordLength => _getString('كلمة المرور يجب أن تكون 8 أحرف على الأقل', 'Password must be at least 8 characters');
+  String get tryAgain => _getString('حاول مرة أخرى', 'Try Again');
 
   // ==================== ERROR TYPES ====================
   String get errorNetwork => _getString('خطأ في الشبكة', 'Network Error');

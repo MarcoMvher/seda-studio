@@ -67,7 +67,18 @@ class SettingsScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      if (authProvider.isAuthenticated)
+                      if (authProvider.isAuthenticated) ...[
+                        // Change Password Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _showChangePasswordDialog(context, authProvider, l10n),
+                            icon: const Icon(Icons.lock_reset),
+                            label: Text(l10n.changePassword),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Logout Button
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
@@ -111,8 +122,8 @@ class SettingsScreen extends StatelessWidget {
                               foregroundColor: Colors.white,
                             ),
                           ),
-                        )
-                      else
+                        ),
+                      ] else
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
@@ -195,6 +206,140 @@ class SettingsScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 32),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _showChangePasswordDialog(BuildContext context, AuthProvider authProvider, AppLocalizations l10n) {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    bool isLoading = false;
+    String? errorMessage;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: Text(l10n.changePassword),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (errorMessage != null) ...[
+                  Text(
+                    errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                TextField(
+                  controller: currentPasswordController,
+                  decoration: InputDecoration(
+                    labelText: l10n.currentPassword,
+                    hintText: l10n.currentPasswordHint,
+                    prefixIcon: const Icon(Icons.lock),
+                    border: const OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                  enabled: !isLoading,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: newPasswordController,
+                  decoration: InputDecoration(
+                    labelText: l10n.newPassword,
+                    hintText: l10n.newPasswordHint,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: const OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                  enabled: !isLoading,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: confirmPasswordController,
+                  decoration: InputDecoration(
+                    labelText: l10n.confirmPassword,
+                    hintText: l10n.confirmPasswordHint,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: const OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                  enabled: !isLoading,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isLoading ? null : () => Navigator.pop(context),
+                child: Text(l10n.cancel),
+              ),
+              ElevatedButton(
+                onPressed: isLoading ? null : () async {
+                  // Validation
+                  if (currentPasswordController.text.isEmpty) {
+                    setDialogState(() {
+                      errorMessage = l10n.currentPasswordHint;
+                    });
+                    return;
+                  }
+
+                  if (newPasswordController.text.length < 8) {
+                    setDialogState(() {
+                      errorMessage = l10n.invalidPasswordLength;
+                    });
+                    return;
+                  }
+
+                  if (newPasswordController.text != confirmPasswordController.text) {
+                    setDialogState(() {
+                      errorMessage = l10n.passwordsDoNotMatch;
+                    });
+                    return;
+                  }
+
+                  setDialogState(() {
+                    isLoading = true;
+                    errorMessage = null;
+                  });
+
+                  final success = await authProvider.changePassword(
+                    currentPasswordController.text,
+                    newPasswordController.text,
+                  );
+
+                  if (!context.mounted) return;
+
+                  setDialogState(() {
+                    isLoading = false;
+                  });
+
+                  if (success) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(l10n.passwordChanged),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    setDialogState(() {
+                      errorMessage = authProvider.errorMessage ?? l10n.passwordChangeFailed;
+                    });
+                  }
+                },
+                child: isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(l10n.save),
+              ),
             ],
           );
         },

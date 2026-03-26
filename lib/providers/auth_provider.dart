@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import '../models/user.dart';
 import '../utils/error_handler.dart';
 
 class AuthProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
+  final AuthService _authService = AuthService();
 
   User? _user;
   bool _isAuthenticated = false;
@@ -81,6 +83,37 @@ class AuthProvider with ChangeNotifier {
         if (_mounted) {
           _error = ErrorHandler.parseError(e);
           _isAuthenticated = false;
+          _isLoading = false;
+          notifyListeners();
+        }
+      });
+
+      return false;
+    }
+  }
+
+  Future<bool> changePassword(String oldPassword, String newPassword) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final response = await _authService.changePassword(oldPassword, newPassword);
+
+      _isLoading = false;
+      _error = null;
+
+      Future.microtask(() {
+        if (_mounted) {
+          notifyListeners();
+        }
+      });
+
+      return response['success'] == true;
+    } catch (e) {
+      Future.microtask(() {
+        if (_mounted) {
+          _error = ErrorHandler.parseError(e);
           _isLoading = false;
           notifyListeners();
         }
