@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'api_service.dart';
+import '../config/app_config.dart';
 import '../models/user.dart';
 import '../utils/error_handler.dart';
 
@@ -9,7 +10,7 @@ class AuthService {
   Future<Map<String, dynamic>> login(String username, String password) async {
     try {
       final response = await _apiService.dio.post(
-        '${AppConfig.authPath}/login/',
+        '/api/auth/login/',
         data: {
           'username': username,
           'password': password,
@@ -78,7 +79,7 @@ class AuthService {
     try {
       final refreshToken = await _apiService.dio.options.headers['refresh_token'];
       await _apiService.dio.post(
-        '${AppConfig.authPath}/logout/',
+        '/api/auth/logout/',
         data: {'refresh': refreshToken},
       );
     } catch (e) {

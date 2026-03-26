@@ -138,7 +138,6 @@ class AppLocalizations {
   String get passwordChangeFailed => _getString('فشل تغيير كلمة المرور', 'Failed to change password');
   String get passwordsDoNotMatch => _getString('كلمات المرور غير متطابقة', 'Passwords do not match');
   String get invalidPasswordLength => _getString('كلمة المرور يجب أن تكون 8 أحرف على الأقل', 'Password must be at least 8 characters');
-  String get tryAgain => _getString('حاول مرة أخرى', 'Try Again');
 
   // ==================== ERROR TYPES ====================
   String get errorNetwork => _getString('خطأ في الشبكة', 'Network Error');
