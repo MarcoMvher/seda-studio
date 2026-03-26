@@ -167,7 +167,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
           // Customer Info
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             color: Colors.grey[100],
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -175,39 +175,58 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
               children: [
                 Text(
                   widget.customer.name,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                const SizedBox(height: 8),
                 if (widget.customer.phone != null) ...[
-                  const Row(
+                  const SizedBox(height: 4),
+                  Row(
                     children: [
-                      Icon(Icons.phone, size: 16),
-                      SizedBox(width: 8),
+                      const Icon(Icons.phone, size: 14),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          widget.customer.phone!,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
                     ],
                   ),
-                  Text(widget.customer.phone!),
-                  const SizedBox(height: 4),
                 ],
                 if (widget.customer.address != null) ...[
-                  const Row(
+                  const SizedBox(height: 4),
+                  Row(
                     children: [
-                      Icon(Icons.location_on, size: 16),
-                      SizedBox(width: 8),
+                      const Icon(Icons.location_on, size: 14),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          widget.customer.address!,
+                          style: const TextStyle(fontSize: 14),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
-                  Text(widget.customer.address!),
-                  const SizedBox(height: 4),
                 ],
                 if (widget.customer.notes != null) ...[
-                  const Row(
+                  const SizedBox(height: 4),
+                  Row(
                     children: [
-                      Icon(Icons.note, size: 16),
-                      SizedBox(width: 8),
+                      const Icon(Icons.note, size: 14),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          widget.customer.notes!,
+                          style: const TextStyle(fontSize: 14),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
-                  Text(widget.customer.notes!),
                 ],
               ],
             ),
@@ -240,7 +259,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
       children: [
         // Search field for order number
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: TextField(
             controller: _visitSearchController,
             decoration: InputDecoration(
@@ -259,6 +278,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
                     )
                   : null,
               border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
             keyboardType: TextInputType.number,
             onChanged: (value) {
@@ -335,6 +355,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
                 child: ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
                   shrinkWrap: false,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: visitProvider.visits.length,
                   itemBuilder: (context, index) {
                     final visit = visitProvider.visits[index];
@@ -368,7 +389,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
       children: [
         // Search field for order number
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: TextField(
             controller: _orderSearchController,
             decoration: InputDecoration(
@@ -386,6 +407,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
                     )
                   : null,
               border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
             keyboardType: TextInputType.number,
             onChanged: (value) {
@@ -452,6 +474,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
                 child: ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
                   shrinkWrap: false,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: filteredOrders.length,
                   itemBuilder: (context, index) {
                     final order = filteredOrders[index];
