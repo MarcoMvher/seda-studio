@@ -2,11 +2,11 @@ class AppConfig {
   // Update this with your actual backend URL
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://localhost:8000', // Default to local development
-    // For production with HTTPS: 'https://your-domain.com'
+    defaultValue: 'https://seda.maverikode.com', // Production HTTPS endpoint
+    // For web & local development: 'http://localhost:8000'
     // For Android emulator: 'http://10.0.2.2:8000'
     // For physical device on local network: 'http://192.168.1.124:8000'
-    // For web/production: MUST use HTTPS (https://...)
+    // For testing with SSH tunnel: 'http://localhost:8001'
   );
 
   static const String apiPath = '/api';
