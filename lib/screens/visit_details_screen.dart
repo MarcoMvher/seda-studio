@@ -113,6 +113,8 @@ class VisitDetailsScreen extends StatefulWidget {
 }
 
 class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
+  bool _isShowingDialog = false;
+
   @override
   void initState() {
     super.initState();
@@ -122,6 +124,105 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
   Future<void> _loadVisit() async {
     final visitProvider = context.read<VisitProvider>();
     await visitProvider.loadVisit(widget.visitId);
+  }
+
+  Future<bool> _onWillPop() async {
+    if (_isShowingDialog) return false;
+
+    final visitProvider = context.read<VisitProvider>();
+    final visit = visitProvider.selectedVisit;
+
+    print('DEBUG: _onWillPop called, visit status: ${visit?.status}');
+
+    if (visit != null && visit.status == 'in_progress') {
+      print('DEBUG: Showing completion dialog');
+      setState(() {
+        _isShowingDialog = true;
+      });
+
+      final shouldComplete = await _showCompletionDialog(context);
+
+      setState(() {
+        _isShowingDialog = false;
+      });
+
+      print('DEBUG: User chose to complete: $shouldComplete');
+
+      if (shouldComplete == true) {
+        print('DEBUG: Updating visit status to completed');
+        await visitProvider.updateVisitStatus(visit.id, 'completed');
+      }
+    } else {
+      print('DEBUG: No dialog shown, visit is null or status is: ${visit?.status}');
+    }
+
+    return true;
+  }
+
+  Future<bool?> _showCompletionDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.completeVisit),
+        content: Text(l10n.completeVisitConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.no),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.yes),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showCancelDialog(BuildContext context, int visitId) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.cancelVisit),
+        content: Text(l10n.cancelVisitConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.no),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(l10n.yes),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final visitProvider = context.read<VisitProvider>();
+      await visitProvider.cancelVisit(visitId);
+
+      if (context.mounted) {
+        if (visitProvider.error != null) {
+          context.showErrorSnackBar(visitProvider.error!);
+          visitProvider.clearError();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.visitCancelled),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          Navigator.of(context).pop();
+        }
+      }
+    }
   }
 
   Future<void> _pickImage() async {
@@ -649,60 +750,36 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.visitDetails),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
-            onPressed: _exportToPDF,
-            tooltip: 'تصدير إلى PDF',
-          ),
-          Consumer<VisitProvider>(
-            builder: (context, visitProvider, _) {
-              final visit = visitProvider.selectedVisit;
-              if (visit == null) return const SizedBox();
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.visitDetails),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf),
+              onPressed: _exportToPDF,
+              tooltip: 'تصدير إلى PDF',
+            ),
+            Consumer<VisitProvider>(
+              builder: (context, visitProvider, _) {
+                final visit = visitProvider.selectedVisit;
+                if (visit == null) return const SizedBox();
 
-              return PopupMenuButton<String>(
-                onSelected: (status) async {
-                  await visitProvider.updateVisitStatus(visit.id, status);
-                  if (mounted) {
-                    if (visitProvider.error != null) {
-                      context.showErrorSnackBar(visitProvider.error!);
-                      visitProvider.clearError();
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('تم تحديث الحالة إلى $status'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    }
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'pending',
-                    child: Text(l10n.statusPending),
-                  ),
-                  PopupMenuItem(
-                    value: 'in_progress',
-                    child: Text(l10n.statusInProgress),
-                  ),
-                  PopupMenuItem(
-                    value: 'completed',
-                    child: Text(l10n.statusCompleted),
-                  ),
-                  PopupMenuItem(
-                    value: 'cancelled',
-                    child: Text(l10n.statusCancelled),
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
+                // Show cancel button only for pending or in_progress visits
+                if (visit.status == 'pending' || visit.status == 'in_progress') {
+                  return IconButton(
+                    icon: const Icon(Icons.cancel),
+                    onPressed: () => _showCancelDialog(context, visit.id),
+                    tooltip: l10n.cancelVisit,
+                  );
+                }
+
+                return const SizedBox();
+              },
+            ),
+          ],
+        ),
       body: Consumer<VisitProvider>(
         builder: (context, visitProvider, _) {
           final visit = visitProvider.selectedVisit;
@@ -1110,6 +1187,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
             ),
           );
         },
+      ),
       ),
     );
   }

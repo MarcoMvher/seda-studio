@@ -33,6 +33,11 @@ class AppLocalizations {
   String get passwordHint => _getString('أدخل كلمة المرور', 'Enter password');
   String get loginError => _getString('فشل تسجيل الدخول', 'Login failed');
   String get invalidCredentials => _getString('اسم المستخدم أو كلمة المرور غير صحيحة', 'Invalid username or password');
+  String get autoDetectRole => _getString('نوع المستخدم محدد تلقائياً: مندوب أو فرع', 'User type is auto-detected: Delegate or Branch');
+  String get delegateRole => _getString('مندوب', 'Delegate');
+  String get branchRole => _getString('فرع', 'Branch');
+  String get delegateUsernameHint => _getString('أدخل اسم المندوب', 'Enter delegate username');
+  String get branchUsernameHint => _getString('أدخل اسم المستخدم للفرع', 'Enter branch username');
 
   // ==================== CUSTOMER LIST ====================
   String get customers => _getString('العملاء', 'Customers');
@@ -62,10 +67,13 @@ class AppLocalizations {
   // ==================== CREATE VISIT DIALOG ====================
   String get createVisit => _getString('إنشاء زيارة', 'Create Visit');
   String get customer => _getString('العميل', 'Customer');
+  String get address => _getString('العنوان', 'Address');
   String get selectOrder => _getString('اختر طلباً:', 'Select an order:');
   String get noAvailableOrders => _getString('لا توجد طلبات متاحة. جميع الطلبات لديها زيارات بالفعل.', 'No available orders. All orders already have visits.');
   String get close => _getString('إغلاق', 'Close');
   String get cancel => _getString('إلغاء', 'Cancel');
+  String get yes => _getString('نعم', 'Yes');
+  String get no => _getString('لا', 'No');
   String get visitForOrder => _getString('زيارة للطلب #', 'Visit for Order #');
 
   // ==================== VISIT DETAILS ====================
@@ -100,6 +108,26 @@ class AppLocalizations {
   String get statusInProgress => _getString('قيد التنفيذ', 'In Progress');
   String get statusCompleted => _getString('مكتمل', 'Completed');
   String get statusCancelled => _getString('ملغي', 'Cancelled');
+
+  // ==================== VISIT ACTIONS ====================
+  String get cancelVisit => _getString('إلغاء الزيارة', 'Cancel Visit');
+  String get cancelVisitConfirmation => _getString('هل أنت متأكد من إلغاء هذه الزيارة؟', 'Are you sure you want to cancel this visit?');
+  String get visitCancelled => _getString('تم إلغاء الزيارة', 'Visit cancelled');
+  String get completeVisit => _getString('إنهاء الزيارة', 'Complete Visit');
+  String get completeVisitConfirmation => _getString('هل تريد إنهاء هذه الزيارة؟', 'Do you want to complete this visit?');
+
+  // ==================== VISITS LIST SCREEN ====================
+  String get searchVisits => _getString('بحث في الزيارات...', 'Search visits...');
+  String get filter => _getString('تصفية', 'Filter');
+  String get refresh => _getString('تحديث', 'Refresh');
+  String get allVisits => _getString('كل الزيارات', 'All Visits');
+  String get noVisitsWithStatus => _getString('لا توجد زيارات بهذه الحالة', 'No visits with this status');
+  String get branchUser => _getString('فرع - عرض فقط', 'Branch - View Only');
+
+  // ==================== ORDER HISTORY ====================
+  String get orderHistory => _getString('سجل الطلبات', 'Order History');
+  String get noOrderHistory => _getString('لا يوجد سجل للطلبات المكتملة', 'No completed order history');
+  String get completed => _getString('مكتمل', 'Completed');
 
   // ==================== ERRORS ====================
   String get error => _getString('خطأ', 'Error');

@@ -21,6 +21,15 @@ class AuthProvider with ChangeNotifier {
   String? get errorMessage => _error?.messageAr; // For backward compatibility
   bool get mounted => _mounted;
 
+  // Check if current user is a branch user (staff member with view-only access)
+  bool get isBranchUser => _user?.isBranchUser ?? false;
+
+  // Check if current user is a delegate (regular user)
+  bool get isDelegate => _user?.isDelegate ?? false;
+
+  // Check if app is in read-only mode (for branch users)
+  bool get isReadOnly => isBranchUser;
+
   @override
   void dispose() {
     _mounted = false;
@@ -67,6 +76,9 @@ class AuthProvider with ChangeNotifier {
 
       await _apiService.setTokens(accessToken, refreshToken);
 
+      // Fetch user data to get actual role from backend
+      await _fetchUserData();
+
       _isAuthenticated = true;
       _isLoading = false;
       _error = null;
@@ -89,6 +101,16 @@ class AuthProvider with ChangeNotifier {
       });
 
       return false;
+    }
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      final response = await _apiService.dio.get('/api/auth/me/');
+      _user = User.fromJson(response.data);
+    } catch (e) {
+      // If we can't fetch user data, continue without it
+      print('Error fetching user data: $e');
     }
   }
 

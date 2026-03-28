@@ -8,6 +8,7 @@ class Order {
   final String status;
   final String statusDisplay;
   final int itemsCount;
+  final String? tAddress;
   final List<OrderItem> items;
 
   Order({
@@ -20,6 +21,7 @@ class Order {
     required this.status,
     required this.statusDisplay,
     required this.itemsCount,
+    this.tAddress,
     required this.items,
   });
 
@@ -55,6 +57,7 @@ class Order {
         status: json['status'] ?? '',
         statusDisplay: json['status_display'] ?? '',
         itemsCount: items.length,
+        tAddress: json['t_address'],
         items: items,
       );
     } catch (e) {
@@ -74,6 +77,7 @@ class Order {
       'branch_name2': branchName2,
       'status': status,
       'status_display': statusDisplay,
+      't_address': tAddress,
     };
   }
 }

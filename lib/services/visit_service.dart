@@ -249,4 +249,17 @@ class VisitService {
       throw ErrorHandler.parseError(e);
     }
   }
+
+  Future<Visit> cancelVisit(int visitId) async {
+    try {
+      final response = await _apiService.dio.post(
+        '${AppConfig.apiPath}/visits/$visitId/cancel_visit/',
+      );
+      return Visit.fromJson(response.data);
+    } on DioException catch (e) {
+      throw ErrorHandler.parseError(e);
+    } catch (e) {
+      throw ErrorHandler.parseError(e);
+    }
+  }
 }

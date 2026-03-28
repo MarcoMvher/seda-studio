@@ -3,6 +3,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/customer_list_screen.dart';
+import 'screens/visits_list_screen.dart';
+import 'screens/settings_screen.dart';
 import 'providers/auth_provider.dart';
 import 'providers/customer_provider.dart';
 import 'providers/visit_provider.dart';
@@ -55,6 +57,9 @@ class MyApp extends StatelessWidget {
             },
             home: const SplashScreen(),
             debugShowCheckedModeBanner: false,
+            routes: {
+              '/settings': (context) => const SettingsScreen(),
+            },
           );
         },
       ),
@@ -85,9 +90,16 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (authProvider.isAuthenticated) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const CustomerListScreen()),
-      );
+      // Navigate based on user role
+      if (authProvider.isBranchUser) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const VisitsListScreen()),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const CustomerListScreen()),
+        );
+      }
     } else {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const LoginScreen()),

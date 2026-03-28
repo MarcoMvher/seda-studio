@@ -25,6 +25,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
   final _orderSearchController = TextEditingController();
   String _orderSearchQuery = '';
 
+  // Orders with completed visits (for history)
+  List<Order> _ordersWithCompletedVisits = [];
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +48,30 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
       _loadVisits(),
       _loadOrders(),
     ]);
+
+    // After loading both, identify orders with completed visits
+    _updateOrdersWithCompletedVisits();
+  }
+
+  void _updateOrdersWithCompletedVisits() {
+    final visitProvider = context.read<VisitProvider>();
+    final orderProvider = context.read<OrderProvider>();
+
+    // Get all completed visits for this customer
+    final completedVisits = visitProvider.visits
+        .where((visit) =>
+            visit.customerId == widget.customer.id &&
+            visit.status == 'completed' &&
+            visit.orderNumber != null)
+        .map((visit) => visit.orderNumber)
+        .toSet();
+
+    // Filter orders that have completed visits
+    setState(() {
+      _ordersWithCompletedVisits = orderProvider.orders
+          .where((order) => completedVisits.contains(order.orderno))
+          .toList();
+    });
   }
 
   Future<void> _loadVisits({int? orderNumber}) async {
@@ -147,6 +174,81 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
     }
   }
 
+  void _showOrderHistory() {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.history),
+            const SizedBox(width: 8),
+            Expanded(child: Text(l10n.orderHistory)),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: _ordersWithCompletedVisits.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.history, size: 64, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.noOrderHistory,
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _ordersWithCompletedVisits.length,
+                  itemBuilder: (context, index) {
+                    final order = _ordersWithCompletedVisits[index];
+                    return Card(
+                      child: ListTile(
+                        leading: const CircleAvatar(
+                          backgroundColor: Colors.green,
+                          child: Icon(Icons.check, color: Colors.white),
+                        ),
+                        title: Text('${l10n.order} #${order.orderno}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (order.date != null)
+                              Text('${l10n.date}: ${order.date!.year}-${order.date!.month.toString().padLeft(2, '0')}-${order.date!.day.toString().padLeft(2, '0')}'),
+                            if (order.itemsCount > 0)
+                              Text('${l10n.items}: ${order.itemsCount}'),
+                            if (order.tAddress != null && order.tAddress!.isNotEmpty)
+                              Text('${l10n.address}: ${order.tAddress}'),
+                            Text(
+                              l10n.completed,
+                              style: const TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: const Icon(Icons.chevron_left),
+                      ),
+                    );
+                  },
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.close),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -154,6 +256,14 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.customer.name),
+        actions: [
+          // History button
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: _showOrderHistory,
+            tooltip: l10n.orderHistory,
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: [
@@ -423,11 +533,16 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
             builder: (context, orderProvider, _) {
               print('DEBUG _buildOrdersTab: isLoading=${orderProvider.isLoading}, error=${orderProvider.errorMessage}, orders=${orderProvider.orders.length}');
 
-              // Filter orders based on search query
-              final filteredOrders = _orderSearchQuery.isNotEmpty
+              // Filter orders based on search query and exclude orders with completed visits
+              var filteredOrders = _orderSearchQuery.isNotEmpty
                   ? orderProvider.orders.where((order) =>
                       order.orderno.toString().contains(_orderSearchQuery)).toList()
                   : orderProvider.orders;
+
+              // Exclude orders that have completed visits
+              filteredOrders = filteredOrders.where((order) =>
+                !_ordersWithCompletedVisits.any((completedOrder) =>
+                  completedOrder.orderno == order.orderno)).toList();
 
               if (orderProvider.isLoading) {
                 return const Center(child: CircularProgressIndicator());
@@ -595,6 +710,8 @@ class _OrderListTile extends StatelessWidget {
               Text('${l10n.date}: ${order.date!.year}-${order.date!.month.toString().padLeft(2, '0')}-${order.date!.day.toString().padLeft(2, '0')}'),
             if (order.itemsCount > 0)
               Text('${l10n.items}: ${order.itemsCount}'),
+            if (order.tAddress != null && order.tAddress!.isNotEmpty)
+              Text('${l10n.address}: ${order.tAddress}'),
             Text('${l10n.status}: ${order.statusDisplay}'),
           ],
         ),
@@ -678,6 +795,8 @@ class _CreateVisitDialogState extends State<CreateVisitDialog> {
                       Text('${l10n.date}: ${order.date!.year}-${order.date!.month.toString().padLeft(2, '0')}-${order.date!.day.toString().padLeft(2, '0')}'),
                     if (order.itemsCount > 0)
                       Text('${l10n.items}: ${order.itemsCount}'),
+                    if (order.tAddress != null && order.tAddress!.isNotEmpty)
+                      Text('${l10n.address}: ${order.tAddress}'),
                   ],
                 ),
                 value: order,

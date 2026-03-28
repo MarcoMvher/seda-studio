@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../l10n/app_localizations.dart';
 import 'customer_list_screen.dart';
+import 'visits_list_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,6 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     final authProvider = context.read<AuthProvider>();
+
     final success = await authProvider.login(
       _usernameController.text.trim(),
       _passwordController.text,
@@ -39,9 +41,16 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const CustomerListScreen()),
-      );
+      // Navigate based on actual user role from backend
+      if (authProvider.isBranchUser) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const VisitsListScreen()),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const CustomerListScreen()),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -110,75 +119,86 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 48),
-                  TextFormField(
-                    controller: _usernameController,
-                    decoration: InputDecoration(
-                      labelText: l10n.username,
-                      prefixIcon: const Icon(Icons.person),
-                      border: const OutlineInputBorder(),
-                      hintText: l10n.usernameHint,
-                    ),
-                    autocorrect: false,
-                    textCapitalization: TextCapitalization.none,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return l10n.usernameHint;
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: l10n.password,
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword
-                            ? Icons.visibility
-                            : Icons.visibility_off),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                      border: const OutlineInputBorder(),
-                      hintText: l10n.passwordHint,
-                    ),
-                    obscureText: _obscurePassword,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return l10n.passwordHint;
-                      }
-                      return null;
-                    },
-                  ),
                   const SizedBox(height: 24),
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, _) {
-                      if (authProvider.isLoading) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      }
 
-                      return ElevatedButton(
-                        onPressed: _handleSubmit,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        child: Text(l10n.login),
-                      );
-                    },
-                  ),
+                  // Login Form
+                  _buildLoginForm(l10n),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLoginForm(AppLocalizations l10n) {
+    return Column(
+      children: [
+        TextFormField(
+          controller: _usernameController,
+          decoration: InputDecoration(
+            labelText: l10n.username,
+            prefixIcon: const Icon(Icons.person),
+            border: const OutlineInputBorder(),
+            hintText: l10n.usernameHint,
+          ),
+          autocorrect: false,
+          textCapitalization: TextCapitalization.none,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return l10n.usernameHint;
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _passwordController,
+          decoration: InputDecoration(
+            labelText: l10n.password,
+            prefixIcon: const Icon(Icons.lock),
+            suffixIcon: IconButton(
+              icon: Icon(_obscurePassword
+                  ? Icons.visibility
+                  : Icons.visibility_off),
+              onPressed: () {
+                setState(() {
+                  _obscurePassword = !_obscurePassword;
+                });
+              },
+            ),
+            border: const OutlineInputBorder(),
+            hintText: l10n.passwordHint,
+          ),
+          obscureText: _obscurePassword,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return l10n.passwordHint;
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 24),
+        Consumer<AuthProvider>(
+          builder: (context, authProvider, _) {
+            if (authProvider.isLoading) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+
+            return ElevatedButton(
+              onPressed: _handleSubmit,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: Text(l10n.login),
+            );
+          },
+        ),
+      ],
     );
   }
 }

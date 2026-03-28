@@ -209,6 +209,35 @@ class VisitProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> cancelVisit(int visitId) async {
+    try {
+      final cancelledVisit = await _visitService.cancelVisit(visitId);
+
+      // Update in list
+      final index = _visits.indexWhere((v) => v.id == visitId);
+      if (index != -1) {
+        _visits[index] = cancelledVisit;
+      }
+
+      // Update selected visit
+      if (_selectedVisit?.id == visitId) {
+        _selectedVisit = cancelledVisit;
+      }
+
+      if (_mounted) {
+        _isLoading = false;
+        _error = null;
+        _notifyIfMounted();
+      }
+    } catch (e) {
+      if (_mounted) {
+        _error = ErrorHandler.parseError(e);
+        _isLoading = false;
+        _notifyIfMounted();
+      }
+    }
+  }
+
   void clearError() {
     _error = null;
     notifyListeners();
