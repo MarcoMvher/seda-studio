@@ -47,6 +47,10 @@ String getDetailTypeDisplayName(String detailType) {
 String _getFullImageUrl(String imageUrl) {
   // Convert relative URL to absolute URL
   if (imageUrl.startsWith('http')) {
+    // Force HTTPS to prevent mixed content issues
+    if (imageUrl.startsWith('http://')) {
+      return imageUrl.replaceFirst('http://', 'https://');
+    }
     return imageUrl;
   }
   // Remove leading slash if present
