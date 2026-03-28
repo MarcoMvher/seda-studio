@@ -10,6 +10,7 @@ import 'dart:io';
 import '../models/visit.dart';
 import '../models/measurement.dart';
 import '../providers/visit_provider.dart';
+import '../providers/auth_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../config/app_config.dart';
 import '../widgets/error_display.dart';
@@ -861,11 +862,13 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.add),
-                      onPressed: _showAddMeasurementDialog,
-                      tooltip: l10n.addMeasurement,
-                    ),
+                    // Only show add button for non-branch users
+                    if (!context.watch<AuthProvider>().isBranchUser)
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: _showAddMeasurementDialog,
+                        tooltip: l10n.addMeasurement,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -924,39 +927,41 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                                     ],
                                   ),
                                 ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, color: Colors.blue),
-                                      onPressed: () => _showEditMeasurementDialog(measurement),
-                                      tooltip: 'تعديل',
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.red),
-                                      onPressed: () async {
-                                        final confirmed = await showDialog<bool>(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: Text(l10n.deleteMeasurement),
-                                            content: Text(l10n.deleteMeasurementConfirm),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.pop(context, false),
-                                                child: Text(l10n.cancel),
-                                              ),
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.pop(context, true),
-                                                child: Text(l10n.delete),
-                                              ),
-                                            ],
-                                          ),
-                                        );
+                                // Only show edit/delete buttons for non-branch users
+                                if (!context.watch<AuthProvider>().isBranchUser)
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: Colors.blue),
+                                        onPressed: () => _showEditMeasurementDialog(measurement),
+                                        tooltip: 'تعديل',
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        onPressed: () async {
+                                          final confirmed = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: Text(l10n.deleteMeasurement),
+                                              content: Text(l10n.deleteMeasurementConfirm),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(context, false),
+                                                  child: Text(l10n.cancel),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(context, true),
+                                                  child: Text(l10n.delete),
+                                                ),
+                                              ],
+                                            ),
+                                          );
 
-                                        if (confirmed == true && mounted) {
-                                          await visitProvider
+                                          if (confirmed == true && mounted) {
+                                            await visitProvider
                                               .deleteMeasurement(measurement.id);
                                           if (mounted) {
                                             if (visitProvider.error != null) {
