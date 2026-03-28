@@ -5,6 +5,7 @@ import '../models/order.dart';
 import '../providers/customer_provider.dart';
 import '../providers/visit_provider.dart';
 import '../providers/order_provider.dart';
+import '../providers/auth_provider.dart';
 import '../l10n/app_localizations.dart';
 import 'visit_details_screen.dart';
 
@@ -354,11 +355,14 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _startVisit,
-        icon: const Icon(Icons.add),
-        label: Text(l10n.startVisit),
-      ),
+      // Only show FAB for non-branch users
+      floatingActionButton: !context.watch<AuthProvider>().isBranchUser
+          ? FloatingActionButton.extended(
+              onPressed: _startVisit,
+              icon: const Icon(Icons.add),
+              label: Text(l10n.startVisit),
+            )
+          : null,
     );
   }
 
