@@ -39,6 +39,8 @@ class CustomerProvider with ChangeNotifier {
   }
 
   Future<void> loadCustomers({String? search, bool refresh = false}) async {
+    print('DEBUG CustomerProvider: loadCustomers called with search: $search, refresh: $refresh');
+
     if (refresh) {
       _currentPage = 1;
       _customers = [];
@@ -51,12 +53,14 @@ class CustomerProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      print('DEBUG CustomerProvider: Calling customer service...');
       final response = await _customerService.getCustomers(
         search: search,
         page: _currentPage,
         pageSize: _pageSize,
       );
 
+      print('DEBUG CustomerProvider: Got ${response.customers.length} customers, total: ${response.totalCount}');
       _customers = response.customers;
       _totalCount = response.totalCount;
       _hasNextPage = response.hasNext;
@@ -64,14 +68,17 @@ class CustomerProvider with ChangeNotifier {
       if (_mounted) {
         _isLoading = false;
         _error = null;
+        print('DEBUG CustomerProvider: Notifying listeners with ${_customers.length} customers');
         notifyListeners();
       }
     } catch (e) {
+      print('DEBUG CustomerProvider: Error loading customers: $e');
       if (_mounted) {
         _isLoading = false;
         _error = e is DioException
             ? ErrorHandler.parseError(e)
             : AppError.fromException(e as Exception);
+        print('DEBUG CustomerProvider: Error set to $_error');
         notifyListeners();
       }
     }
@@ -142,5 +149,10 @@ class CustomerProvider with ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  @override
+  String toString() {
+    return 'CustomerProvider(customers: ${_customers.length}, isLoading: $_isLoading, error: $_error)';
   }
 }
