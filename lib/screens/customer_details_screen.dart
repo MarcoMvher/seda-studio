@@ -534,10 +534,10 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
                       order.orderno.toString().contains(_orderSearchQuery)).toList()
                   : orderProvider.orders;
 
-              // Exclude orders that have completed visits
+              // Exclude orders that have completed visits (using backend data)
+              final orderProvider = context.watch<OrderProvider>();
               filteredOrders = filteredOrders.where((order) =>
-                !_ordersWithCompletedVisits.any((completedOrder) =>
-                  completedOrder.orderno == order.orderno)).toList();
+                !orderProvider.completedOrderNumbers.contains(order.orderno)).toList();
 
               if (orderProvider.isLoading) {
                 return const Center(child: CircularProgressIndicator());
