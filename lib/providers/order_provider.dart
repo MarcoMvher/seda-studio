@@ -7,11 +7,13 @@ class OrderProvider with ChangeNotifier {
   final OrderService _orderService = OrderService();
 
   List<Order> _orders = [];
+  Set<int> _completedOrderNumbers = {};
   bool _isLoading = false;
   String? _errorMessage;
   bool _mounted = true;
 
   List<Order> get orders => _orders;
+  Set<int> get completedOrderNumbers => _completedOrderNumbers;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -27,11 +29,13 @@ class OrderProvider with ChangeNotifier {
     // Don't set loading state initially to avoid build-phase issues
 
     try {
-      final orders = await _orderService.getOrdersForCustomer(customerId);
-      print('DEBUG: Loaded ${orders.length} orders');
+      final result = await _orderService.getOrdersForCustomer(customerId);
+      print('DEBUG: Loaded ${result['orders'].length} orders');
+      print('DEBUG: Completed orders: ${result['completed_orders']}');
 
       if (_mounted) {
-        _orders = orders;
+        _orders = result['orders'];
+        _completedOrderNumbers = result['completed_orders'];
         _isLoading = false;
         _errorMessage = null;
         notifyListeners();

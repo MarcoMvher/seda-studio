@@ -50,27 +50,18 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
       _loadOrders(),
     ]);
 
-    // After loading both, identify orders with completed visits
-    _updateOrdersWithCompletedVisits();
+    // After loading both, identify orders with completed visits using backend data
+    final orderProvider = context.read<OrderProvider>();
+    _updateOrdersWithCompletedVisits(orderProvider.completedOrderNumbers.toList());
   }
 
-  void _updateOrdersWithCompletedVisits() {
-    final visitProvider = context.read<VisitProvider>();
+  void _updateOrdersWithCompletedVisits(List<int> completedOrderNumbers) {
     final orderProvider = context.read<OrderProvider>();
 
-    // Get all completed visits for this customer
-    final completedVisits = visitProvider.visits
-        .where((visit) =>
-            visit.customerId == widget.customer.id &&
-            visit.status == 'completed' &&
-            visit.orderNumber != null)
-        .map((visit) => visit.orderNumber)
-        .toSet();
-
-    // Filter orders that have completed visits
+    // Filter orders that have completed visits using backend data
     setState(() {
       _ordersWithCompletedVisits = orderProvider.orders
-          .where((order) => completedVisits.contains(order.orderno))
+          .where((order) => completedOrderNumbers.contains(order.orderno))
           .toList();
     });
   }
