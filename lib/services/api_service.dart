@@ -30,8 +30,16 @@ class ApiService {
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }
+        print('API Request: ${options.method} ${options.uri}');
         return handler.next(options);
       },
+      onResponse: (response, handler) {
+        print('API Response: ${response.statusCode} ${response.requestOptions.uri}');
+        return handler.next(response);
+      },
+      onError: (error, handler) async {
+        print('API Error: ${error.message} - ${error.requestOptions.uri}');
+        print('Error Response: ${error.response?.statusCode}');
       onError: (error, handler) async {
         // Try to refresh token on 401
         if (error.response?.statusCode == 401) {

@@ -12,6 +12,6 @@ class AppConfig {
   static const String apiPath = '/api';
   static const String authPath = '/api/auth';
 
-  static const Duration connectTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 15);
+  static const Duration connectTimeout = Duration(seconds: 30);
+  static const Duration receiveTimeout = Duration(seconds: 30);
 }
