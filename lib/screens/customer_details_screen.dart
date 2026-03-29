@@ -535,7 +535,6 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen>
                   : orderProvider.orders;
 
               // Exclude orders that have completed visits (using backend data)
-              final orderProvider = context.watch<OrderProvider>();
               filteredOrders = filteredOrders.where((order) =>
                 !orderProvider.completedOrderNumbers.contains(order.orderno)).toList();
 
