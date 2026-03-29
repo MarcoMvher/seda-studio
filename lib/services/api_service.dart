@@ -39,21 +39,28 @@ class ApiService {
       },
       onError: (error, handler) async {
         print('API Error: ${error.message} - ${error.requestOptions.uri}');
-        print('Error Response: ${error.response?.statusCode}');
-      onError: (error, handler) async {
+        print('Error Response: ${error.response?.statusCode} - Type: ${error.type}');
         // Try to refresh token on 401
         if (error.response?.statusCode == 401) {
+          print('DEBUG: Got 401, attempting token refresh...');
           try {
             await _refreshToken();
             // Retry the original request
             final token = await _storage.read(key: 'access_token');
-            final options = error.requestOptions;
-            options.headers['Authorization'] = 'Bearer $token';
-            final response = await _dio.fetch(options);
-            return handler.resolve(response);
+            if (token != null) {
+              final options = error.requestOptions;
+              options.headers['Authorization'] = 'Bearer $token';
+              print('DEBUG: Retrying request with new token');
+              final response = await _dio.fetch(options);
+              return handler.resolve(response);
+            } else {
+              print('DEBUG: No token after refresh, clearing session');
+              await _storage.delete(key: 'access_token');
+              await _storage.delete(key: 'refresh_token');
+            }
           } catch (e) {
             // Refresh failed, clear tokens and let the error propagate
-            print('DEBUG: Token refresh failed, clearing tokens');
+            print('DEBUG: Token refresh failed: $e');
             await _storage.delete(key: 'access_token');
             await _storage.delete(key: 'refresh_token');
           }
