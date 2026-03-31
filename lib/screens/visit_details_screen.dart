@@ -927,8 +927,8 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                                     ],
                                   ),
                                 ),
-                                // Only show edit/delete buttons for non-branch users
-                                if (!context.watch<AuthProvider>().isBranchUser)
+                                // Only show edit/delete buttons for non-branch users and non-completed visits
+                                if (!context.watch<AuthProvider>().isBranchUser && visit.status != 'completed')
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
