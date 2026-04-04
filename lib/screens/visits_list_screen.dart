@@ -360,6 +360,16 @@ class _VisitsListScreenState extends State<VisitsListScreen> {
                             ),
                           ),
                         ],
+                        if (visit.delegateName != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            '${l10n.by} ${visit.delegateName}',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

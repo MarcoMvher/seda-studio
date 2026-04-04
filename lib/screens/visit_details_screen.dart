@@ -829,6 +829,11 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                           label: l10n.customer,
                           value: visit.customerDetails?.name ?? 'غير معروف',
                         ),
+                        if (visit.delegateName != null)
+                          _InfoRow(
+                            label: l10n.delegateLabel,
+                            value: visit.delegateName!,
+                          ),
                         _InfoRow(
                           label: l10n.status,
                           value: visit.statusDisplay,
