@@ -129,6 +129,13 @@ class AppLocalizations {
   String get noOrderHistory => _getString('لا يوجد سجل للطلبات المكتملة', 'No completed order history');
   String get completed => _getString('مكتمل', 'Completed');
 
+  // ==================== ADMIN SELECT VIEW ====================
+  String get adminSelectView => _getString('اختر العرض', 'Select View');
+  String get delegates => _getString('المندوبين', 'Delegates');
+  String get branches => _getString('الفروع', 'Branches');
+  String get delegatesViewDesc => _getString('عرض العملاء والطلبات', 'View customers and orders');
+  String get branchesViewDesc => _getString('عرض الزيارات والقياسات', 'View visits and measurements');
+
   // ==================== ERRORS ====================
   String get error => _getString('خطأ', 'Error');
   String get tryAgain => _getString('إعادة المحاولة', 'Try Again');

@@ -27,6 +27,9 @@ class AuthProvider with ChangeNotifier {
   // Check if current user is a delegate (regular user)
   bool get isDelegate => _user?.isDelegate ?? false;
 
+  // Check if current user is admin (superuser)
+  bool get isAdmin => _user?.isSuperuser ?? false;
+
   // Check if app is in read-only mode (for branch users)
   bool get isReadOnly => isBranchUser;
 
@@ -40,6 +43,11 @@ class AuthProvider with ChangeNotifier {
     try {
       final isAuth = await _apiService.isAuthenticated();
       _isAuthenticated = isAuth;
+
+      // Fetch user data if authenticated
+      if (_isAuthenticated) {
+        await _fetchUserData();
+      }
 
       Future.microtask(() {
         if (_mounted) {

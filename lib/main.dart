@@ -90,8 +90,18 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (authProvider.isAuthenticated) {
+      // Debug logging
+      print('DEBUG: User authenticated');
+      print('DEBUG: isAdmin: ${authProvider.isAdmin}');
+      print('DEBUG: isBranchUser: ${authProvider.isBranchUser}');
+      print('DEBUG: isSuperuser: ${authProvider.user?.isSuperuser}');
+      print('DEBUG: isStaff: ${authProvider.user?.isStaff}');
+
       // Navigate based on user role
-      if (authProvider.isBranchUser) {
+      if (authProvider.isAdmin) {
+        // Show dialog for admin users to choose between branches or delegates
+        _showAdminNavigationDialog();
+      } else if (authProvider.isBranchUser) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const VisitsListScreen()),
         );
@@ -105,6 +115,48 @@ class _SplashScreenState extends State<SplashScreen> {
         MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
     }
+  }
+
+  void _showAdminNavigationDialog() {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.adminSelectView),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.people),
+                title: Text(l10n.delegates),
+                subtitle: Text(l10n.delegatesViewDesc),
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const CustomerListScreen()),
+                  );
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.store),
+                title: Text(l10n.branches),
+                subtitle: Text(l10n.branchesViewDesc),
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const VisitsListScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
