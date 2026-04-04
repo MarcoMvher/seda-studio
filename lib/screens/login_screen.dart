@@ -41,8 +41,10 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      // Navigate based on actual user role from backend
-      if (authProvider.isBranchUser) {
+      // Check if user is admin and show selection dialog
+      if (authProvider.isAdmin) {
+        _showAdminNavigationDialog();
+      } else if (authProvider.isBranchUser) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const VisitsListScreen()),
         );
@@ -59,6 +61,48 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
+  }
+
+  void _showAdminNavigationDialog() {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.adminSelectView),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.people),
+                title: Text(l10n.delegates),
+                subtitle: Text(l10n.delegatesViewDesc),
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const CustomerListScreen()),
+                  );
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.store),
+                title: Text(l10n.branches),
+                subtitle: Text(l10n.branchesViewDesc),
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const VisitsListScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
