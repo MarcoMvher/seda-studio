@@ -21,6 +21,10 @@ class Measurement {
   final String? image;         // Image path
   final String? imageUrl;      // Full image URL
 
+  // Location data
+  final double? latitude;      // خط العرض - Latitude
+  final double? longitude;     // خط الطول - Longitude
+
   final String? notes;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -41,6 +45,8 @@ class Measurement {
     this.windowToCeiling,
     this.image,
     this.imageUrl,
+    this.latitude,
+    this.longitude,
     this.notes,
     required this.createdAt,
     required this.updatedAt,
@@ -65,6 +71,8 @@ class Measurement {
           : null,
       image: json['image'],
       imageUrl: json['image_url'],
+      latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
+      longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
       notes: json['notes'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
@@ -87,6 +95,8 @@ class Measurement {
       'has_wood': hasWood,
       if (windowToCeiling != null) 'window_to_ceiling': windowToCeiling,
       if (image != null) 'image': image,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
       if (notes != null) 'notes': notes,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),

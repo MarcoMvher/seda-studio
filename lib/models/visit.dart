@@ -19,6 +19,8 @@ class Visit {
   final int? visitNumber;
   final bool isMainVisit;
   final int? orderNumber;
+  final bool? hasLocation;
+  final Map<String, double>? latestLocation;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -39,6 +41,8 @@ class Visit {
     this.visitNumber,
     this.isMainVisit = true,
     this.orderNumber,
+    this.hasLocation,
+    this.latestLocation,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -75,6 +79,10 @@ class Visit {
       visitNumber: json['visit_number'],
       isMainVisit: json['is_main_visit'] ?? true,
       orderNumber: json['order_number'],
+      hasLocation: json['has_location'],
+      latestLocation: json['latest_location'] != null
+          ? Map<String, double>.from(json['latest_location'])
+          : null,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );

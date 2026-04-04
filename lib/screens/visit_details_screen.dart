@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -285,9 +286,12 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
 
   Future<void> _showAddMeasurementDialog() async {
     final l10n = AppLocalizations.of(context)!;
+    final visitProvider = context.read<VisitProvider>();
+    final visit = visitProvider.selectedVisit;
+
     final result = await showDialog<List<Map<String, dynamic>>>(
       context: context,
-      builder: (context) => const AddMeasurementDialog(),
+      builder: (context) => AddMeasurementDialog(visit: visit),
     );
 
     if (result != null && mounted) {
@@ -319,9 +323,15 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
 
   Future<void> _showEditMeasurementDialog(Measurement measurement) async {
     final l10n = AppLocalizations.of(context)!;
+    final visitProvider = context.read<VisitProvider>();
+    final visit = visitProvider.selectedVisit;
+
     final result = await showDialog<List<Map<String, dynamic>>>(
       context: context,
-      builder: (context) => AddMeasurementDialog(measurement: measurement),
+      builder: (context) => AddMeasurementDialog(
+        measurement: measurement,
+        visit: visit,
+      ),
     );
 
     if (result != null && result.isNotEmpty && mounted) {
@@ -1251,8 +1261,9 @@ class _InfoRow extends StatelessWidget {
 
 class AddMeasurementDialog extends StatefulWidget {
   final Measurement? measurement; // Add this for editing
+  final Visit? visit; // Visit to check status for location capture
 
-  const AddMeasurementDialog({super.key, this.measurement});
+  const AddMeasurementDialog({super.key, this.measurement, this.visit});
 
   @override
   State<AddMeasurementDialog> createState() => _AddMeasurementDialogState();
@@ -1312,9 +1323,34 @@ class _AddMeasurementDialogState extends State<AddMeasurementDialog> {
     });
   }
 
-  void _handleSubmit() async {
+  Future<void> _handleSubmit() async {
     if (_formKey.currentState!.validate()) {
       final results = <Map<String, dynamic>>[];
+
+      // Capture location only if visit status is 'in_progress'
+      double? latitude;
+      double? longitude;
+
+      if (widget.visit != null && widget.visit!.status == 'in_progress') {
+        try {
+          LocationPermission permission = await Geolocator.checkPermission();
+          if (permission == LocationPermission.denied) {
+            permission = await Geolocator.requestPermission();
+          }
+
+          if (permission == LocationPermission.whileInUse ||
+              permission == LocationPermission.always) {
+            final position = await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.medium,
+            );
+            latitude = position.latitude;
+            longitude = position.longitude;
+          }
+        } catch (e) {
+          print('Error getting location: $e');
+          // Continue without location if there's an error
+        }
+      }
 
       for (var row in _rows) {
         if (row.spaceNameController.text.trim().isEmpty &&
@@ -1346,6 +1382,8 @@ class _AddMeasurementDialogState extends State<AddMeasurementDialog> {
           if (row.windowToCeilingController.text.trim().isNotEmpty)
             'window_to_ceiling': double.tryParse(row.windowToCeilingController.text),
           if (row.imageData != null) 'image': row.imageData,
+          if (latitude != null) 'latitude': latitude,
+          if (longitude != null) 'longitude': longitude,
           if (row.generalNotes != null && row.generalNotes!.trim().isNotEmpty)
             'notes': row.generalNotes!.trim(),
         };

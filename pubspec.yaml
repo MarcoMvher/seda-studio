@@ -27,6 +27,9 @@ dependencies:
   # Image Picker
   image_picker: ^1.0.7
 
+  # Location
+  geolocator: ^7.7.1
+
   # PDF Generation
   pdf: ^3.10.7
   printing: ^5.11.1
