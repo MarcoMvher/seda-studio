@@ -806,6 +806,11 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
             );
           }
 
+          // Debug logging
+          print('DEBUG VisitDetails: delegateName = ${visit.delegateName}');
+          print('DEBUG VisitDetails: delegateId = ${visit.delegateId}');
+          print('DEBUG VisitDetails: full visit data = ${visit.toJson()}');
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -833,6 +838,11 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                           _InfoRow(
                             label: l10n.delegateLabel,
                             value: visit.delegateName!,
+                          )
+                        else
+                          _InfoRow(
+                            label: l10n.delegateLabel,
+                            value: 'غير معروف',
                           ),
                         _InfoRow(
                           label: l10n.status,
