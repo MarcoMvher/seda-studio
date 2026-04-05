@@ -389,33 +389,34 @@ class _VisitsListScreenState extends State<VisitsListScreen> {
                   ],
                 ),
               ],
-              // Show location for admin users if available
-              ...[
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, _) {
-                    if (authProvider.isAdmin && visit.hasLocation == true && visit.latestLocation != null) {
-                      return Column(
-                        children: [
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(Icons.location_on, size: 16, color: Colors.red),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  '${visit.latestLocation!['latitude']!.toStringAsFixed(6)}, ${visit.latestLocation!['longitude']!.toStringAsFixed(6)}',
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
-              ],
+              // Location display disabled - requires Flutter upgrade
+              // TODO: Enable after Flutter upgrade
+              // ...[
+              //   Consumer<AuthProvider>(
+              //     builder: (context, authProvider, _) {
+              //       if (authProvider.isAdmin && visit.hasLocation == true && visit.latestLocation != null) {
+              //         return Column(
+              //           children: [
+              //             const SizedBox(height: 8),
+              //             Row(
+              //               children: [
+              //                 const Icon(Icons.location_on, size: 16, color: Colors.red),
+              //                 const SizedBox(width: 4),
+              //                 Expanded(
+              //                   child: Text(
+              //                     '${visit.latestLocation!['latitude']!.toStringAsFixed(6)}, ${visit.latestLocation!['longitude']!.toStringAsFixed(6)}',
+              //                     style: const TextStyle(fontSize: 12, color: Colors.grey),
+              //                   ),
+              //                 ),
+              //               ],
+              //             ),
+              //           ],
+              //         );
+              //       }
+              //       return const SizedBox.shrink();
+              //     },
+              //   ),
+              // ],
               if (visit.notes != null && visit.notes!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(

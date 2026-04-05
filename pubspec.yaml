@@ -27,8 +27,8 @@ dependencies:
   # Image Picker
   image_picker: ^1.0.7
 
-  # Location
-  geolocator: ^8.2.1
+  # Location (disabled - requires Flutter upgrade)
+  # geolocator: ^8.2.1
 
   # PDF Generation
   pdf: ^3.10.7
