@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -1327,30 +1328,29 @@ class _AddMeasurementDialogState extends State<AddMeasurementDialog> {
       final results = <Map<String, dynamic>>[];
 
       // Capture location only if visit status is 'in_progress'
-      // NOTE: Location capture disabled due to Flutter compatibility issues
-      // Requires Flutter upgrade to enable geolocator package
       double? latitude;
       double? longitude;
 
-      // TODO: Enable location capture after Flutter upgrade
-      // if (widget.visit != null && widget.visit!.status == 'in_progress') {
-      //   try {
-      //     LocationPermission permission = await Geolocator.checkPermission();
-      //     if (permission == LocationPermission.denied) {
-      //       permission = await Geolocator.requestPermission();
-      //     }
-      //     if (permission == LocationPermission.whileInUse ||
-      //         permission == LocationPermission.always) {
-      //       final position = await Geolocator.getCurrentPosition(
-      //         desiredAccuracy: LocationAccuracy.medium,
-      //       );
-      //       latitude = position.latitude;
-      //       longitude = position.longitude;
-      //     }
-      //   } catch (e) {
-      //     print('Error getting location: $e');
-      //   }
-      // }
+      if (widget.visit != null && widget.visit!.status == 'in_progress') {
+        try {
+          LocationPermission permission = await Geolocator.checkPermission();
+          if (permission == LocationPermission.denied) {
+            permission = await Geolocator.requestPermission();
+          }
+
+          if (permission == LocationPermission.whileInUse ||
+              permission == LocationPermission.always) {
+            final position = await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.medium,
+            );
+            latitude = position.latitude;
+            longitude = position.longitude;
+          }
+        } catch (e) {
+          print('Error getting location: $e');
+          // Continue without location if there's an error
+        }
+      }
 
       for (var row in _rows) {
         if (row.spaceNameController.text.trim().isEmpty &&
