@@ -120,16 +120,42 @@ class VisitDetailsScreen extends StatefulWidget {
 
 class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
   bool _isShowingDialog = false;
+  bool _isLocationAvailable = false;
 
   @override
   void initState() {
     super.initState();
     _loadVisit();
+    _checkLocationAvailability();
+  }
+
+  Future<void> _checkLocationAvailability() async {
+    final available = await _isLocationAvailable();
+    if (mounted && available != _isLocationAvailable) {
+      setState(() {
+        _isLocationAvailable = available;
+      });
+    }
   }
 
   Future<void> _loadVisit() async {
     final visitProvider = context.read<VisitProvider>();
     await visitProvider.loadVisit(widget.visitId);
+  }
+
+  // Check if location service is enabled and available
+  Future<bool> _isLocationAvailable() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return false;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      return permission == LocationPermission.always ||
+             permission == LocationPermission.whileInUse;
+    } catch (e) {
+      print('DEBUG: Error checking location availability: $e');
+      return false;
+    }
   }
 
   Future<bool> _onWillPop() async {
@@ -888,11 +914,25 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                           ),
                     ),
                     // Only show add button for non-branch users
-                    if (!context.watch<AuthProvider>().isBranchUser)
+                    // Hide if visit is in_progress and location is not available
+                    if (!context.watch<AuthProvider>().isBranchUser &&
+                        (visit.status != 'in_progress' || _isLocationAvailable))
                       IconButton(
                         icon: const Icon(Icons.add),
                         onPressed: _showAddMeasurementDialog,
                         tooltip: l10n.addMeasurement,
+                      ),
+                    // Show location warning if visit is in_progress and location not available
+                    if (visit.status == 'in_progress' &&
+                        !_isLocationAvailable &&
+                        !context.watch<AuthProvider>().isBranchUser)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Icon(
+                          Icons.location_off,
+                          color: Colors.red,
+                          size: 20,
+                        ),
                       ),
                   ],
                 ),
