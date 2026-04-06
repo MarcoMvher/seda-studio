@@ -130,7 +130,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
   }
 
   Future<void> _checkLocationAvailability() async {
-    final available = await _isLocationAvailable();
+    final available = await _checkLocationService();
     if (mounted && available != _isLocationAvailable) {
       setState(() {
         _isLocationAvailable = available;
@@ -144,7 +144,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
   }
 
   // Check if location service is enabled and available
-  Future<bool> _isLocationAvailable() async {
+  Future<bool> _checkLocationService() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) return false;
