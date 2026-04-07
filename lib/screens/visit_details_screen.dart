@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -870,6 +871,81 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                           label: l10n.customer,
                           value: visit.customerDetails?.name ?? 'غير معروف',
                         ),
+                        // Show location for admin users if visit has measurements with GPS
+                        if (context.watch<AuthProvider>().isAdmin && visit.measurements != null && visit.measurements!.any((m) => m.latitude != null && m.longitude != null)) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.red[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red[200]!),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.location_on, size: 18, color: Colors.red),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      l10n.location ?? 'الموقع',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                // Show ALL measurements with location
+                                ...visit.measurements!
+                                    .asMap()
+                                    .entries
+                                    .where((entry) => entry.value.latitude != null && entry.value.longitude != null)
+                                    .map((entry) {
+                                      final index = entry.key;
+                                      final measurement = entry.value;
+                                      return Padding(
+                                        padding: const EdgeInsets.only(bottom: 4.0),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                            "${measurement.spaceName ?? "قياس ${index + 1}"}: ",
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: GestureDetector(
+                                                onTap: () async {
+                                                  // Open Google Maps with the location
+                                                  final url = 'https://www.google.com/maps/search/?api=1&query=${measurement.latitude},${measurement.longitude}';
+                                                  if (await canLaunchUrl(Uri.parse(url))) {
+                                                    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                                                  }
+                                                },
+                                                child: Text(
+                                                  '${measurement.latitude!.toStringAsFixed(6)}, ${measurement.longitude!.toStringAsFixed(6)}',
+                                                  style: const TextStyle(
+                                                    fontSize: 13,
+                                                    color: Colors.blue,
+                                                    decoration: TextDecoration.underline,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                              ],
+                            ),
+                          ),
+                        ],
                         if (visit.delegateName != null)
                           _InfoRow(
                             label: l10n.delegateLabel,

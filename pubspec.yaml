@@ -29,6 +29,7 @@ dependencies:
 
   # Location
   geolocator: ^10.1.0
+  url_launcher: ^6.2.4
 
   # PDF Generation
   pdf: ^3.10.7
@@ -45,12 +46,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Temporarily disabled for web build
-  # assets:
-  #   - assets/fonts/
-  #   - assets/images/
-
-  # fonts:
-  #   - family: NotoSansArabic
-  #     fonts:
-  #       - asset: assets/fonts/NotoSansArabic-Regular.ttf
+  assets:
+    - assets/images/

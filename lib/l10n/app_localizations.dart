@@ -137,6 +137,7 @@ class AppLocalizations {
   String get branchesViewDesc => _getString('عرض الزيارات والقياسات', 'View visits and measurements');
   String get delegateLabel => _getString('المندوب', 'Delegate');
   String get by => _getString('بواسطة', 'By');
+  String get location => _getString('الموقع', 'Location');
 
   // ==================== ERRORS ====================
   String get error => _getString('خطأ', 'Error');
