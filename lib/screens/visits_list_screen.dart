@@ -7,6 +7,7 @@ import 'visit_details_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/error_display.dart';
+import 'package:intl/intl.dart';
 
 class VisitsListScreen extends StatefulWidget {
   const VisitsListScreen({super.key});
@@ -19,6 +20,8 @@ class _VisitsListScreenState extends State<VisitsListScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
   String? _selectedStatus;
+  DateTime? _startDate;
+  DateTime? _endDate;
 
   @override
   void initState() {
@@ -37,6 +40,10 @@ class _VisitsListScreenState extends State<VisitsListScreen> {
     await visitProvider.loadVisits(status: _selectedStatus);
   }
 
+  String _formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-dd HH:mm').format(date);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -46,6 +53,12 @@ class _VisitsListScreenState extends State<VisitsListScreen> {
       appBar: AppBar(
         title: Text(l10n.visits),
         actions: [
+          // Advanced filter button
+          IconButton(
+            icon: const Icon(Icons.filter_alt),
+            onPressed: _showFilterDialog,
+            tooltip: 'Advanced filters',
+          ),
           // Status filter dropdown
           PopupMenuButton<String?>(
             icon: const Icon(Icons.filter_list),
@@ -122,19 +135,54 @@ class _VisitsListScreenState extends State<VisitsListScreen> {
               },
             ),
           ),
-          // Current filter indicator
-          if (_selectedStatus != null)
+          // Current filter indicators
+          if (_selectedStatus != null || _startDate != null || _endDate != null || _searchQuery.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Chip(
-                label: Text(_getStatusText(_selectedStatus!)),
-                deleteIcon: const Icon(Icons.close),
-                onDeleted: () {
-                  setState(() {
-                    _selectedStatus = null;
-                    _loadVisits();
-                  });
-                },
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (_selectedStatus != null)
+                    Chip(
+                      label: Text(_getStatusText(_selectedStatus!)),
+                      deleteIcon: const Icon(Icons.close),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedStatus = null;
+                          _loadVisits();
+                        });
+                      },
+                    ),
+                  if (_startDate != null || _endDate != null)
+                    Chip(
+                      label: Text(
+                        _startDate != null && _endDate != null
+                            ? '${DateFormat('MM/dd').format(_startDate!)} - ${DateFormat('MM/dd').format(_endDate!)}'
+                            : _startDate != null
+                                ? 'من ${DateFormat('MM/dd').format(_startDate!)}'
+                                : 'إلى ${DateFormat('MM/dd').format(_endDate!)}',
+                      ),
+                      deleteIcon: const Icon(Icons.close),
+                      onDeleted: () {
+                        setState(() {
+                          _startDate = null;
+                          _endDate = null;
+                        });
+                      },
+                    ),
+                  if (_searchQuery.isNotEmpty)
+                    Chip(
+                      label: Text('بحث: $_searchQuery'),
+                      deleteIcon: const Icon(Icons.close),
+                      onDeleted: () {
+                        setState(() {
+                          _searchController.clear();
+                          _searchQuery = '';
+                        });
+                      },
+                    ),
+                ],
               ),
             ),
           // Visits list
@@ -154,14 +202,49 @@ class _VisitsListScreenState extends State<VisitsListScreen> {
 
                 List<Visit> filteredVisits = visitProvider.visits;
 
-                // Apply search filter
+                // Apply search filter - searches in customer name, delegate name, order number, visit ID, and date
                 if (_searchQuery.isNotEmpty) {
                   filteredVisits = filteredVisits.where((visit) {
                     final searchLower = _searchQuery.toLowerCase();
-                    return visit.customerName?.toLowerCase().contains(searchLower) == true ||
-                        visit.id.toString().contains(searchLower) ||
-                        (visit.orderNumber != null && visit.orderNumber.toString().contains(searchLower));
+
+                    // Search in customer name
+                    if (visit.customerName?.toLowerCase().contains(searchLower) == true) return true;
+
+                    // Search in delegate name
+                    if (visit.delegateName?.toLowerCase().contains(searchLower) == true) return true;
+
+                    // Search in order number
+                    if (visit.orderNumber != null && visit.orderNumber.toString().contains(searchLower)) return true;
+
+                    // Search in visit ID
+                    if (visit.id.toString().contains(searchLower)) return true;
+
+                    // Search in date (formatted date)
+                    final dateStr = _formatDate(visit.createdAt).toLowerCase();
+                    if (dateStr.contains(searchLower)) return true;
+
+                    return false;
                   }).toList();
+                }
+
+                // Apply date range filter
+                if (_startDate != null) {
+                  filteredVisits = filteredVisits.where((visit) =>
+                    visit.createdAt.isAfter(_startDate!) || visit.createdAt.isAtSameMomentAs(_startDate!)
+                  ).toList();
+                }
+
+                if (_endDate != null) {
+                  // Set end date to end of the day
+                  final endOfDay = DateTime(_endDate!.year, _endDate!.month, _endDate!.day, 23, 59, 59);
+                  filteredVisits = filteredVisits.where((visit) =>
+                    visit.createdAt.isBefore(endOfDay) || visit.createdAt.isAtSameMomentAs(endOfDay)
+                  ).toList();
+                }
+
+                // Apply status filter
+                if (_selectedStatus != null) {
+                  filteredVisits = filteredVisits.where((visit) => visit.status == _selectedStatus).toList();
                 }
 
                 if (filteredVisits.isEmpty) {
@@ -310,6 +393,99 @@ class _VisitsListScreenState extends State<VisitsListScreen> {
     );
   }
 
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('تصفية متقدمة'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Date range filter
+                const Text('تاريخ الزيارة:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.calendar_today, size: 16),
+                        label: Text(_startDate != null
+                            ? DateFormat('yyyy-MM-dd').format(_startDate!)
+                            : 'من تاريخ'),
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _startDate ?? DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now(),
+                          );
+                          if (picked != null) {
+                            setDialogState(() => _startDate = picked);
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.calendar_today, size: 16),
+                        label: Text(_endDate != null
+                            ? DateFormat('yyyy-MM-dd').format(_endDate!)
+                            : 'إلى تاريخ'),
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _endDate ?? DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now(),
+                          );
+                          if (picked != null) {
+                            setDialogState(() => _endDate = picked);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Clear filters button
+                if (_startDate != null || _endDate != null || _selectedStatus != null)
+                  Center(
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.clear_all),
+                      label: const Text('مسح التصفية'),
+                      onPressed: () {
+                        setDialogState(() {
+                          _startDate = null;
+                          _endDate = null;
+                        });
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {}); // Apply filters
+                Navigator.pop(context);
+              },
+              child: const Text('تطبيق'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildVisitCard(BuildContext context, Visit visit, AppLocalizations l10n) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -370,6 +546,15 @@ class _VisitsListScreenState extends State<VisitsListScreen> {
                             ),
                           ),
                         ],
+                        // Show visit date
+                        const SizedBox(height: 2),
+                        Text(
+                          _formatDate(visit.createdAt),
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   ),
